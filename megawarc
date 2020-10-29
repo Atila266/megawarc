@@ -217,7 +217,7 @@ def read_metadata(stream, metadata):
       record = record.split(split_s)[0]
       break
   record = [s.strip() for s in record.splitlines()]
-  if record[1].lower() == 'warc-type: warcinfo' and 'x-wget-at-' in record:
+  if record[1].lower() == 'warc-type: warcinfo':
     for line in record:
       if line.startswith('x-wget-at-'):
         key, value = line.split('-', 3)[-1].split(':', 1)

@@ -209,23 +209,24 @@ class CopyReader(object):
 
 
 def read_metadata(stream, metadata):
-  split_s = "\r\n" * 3
+  split_s = "\n" + "\r\n" * 2
   record = ""
   while True:
     record += stream.read(4096)
     if split_s in record:
       record = record.split(split_s)[0]
       break
-  record = [s.strip() for s in record.splitlines()]
-  if record[1].lower() == 'warc-type: warcinfo':
-    for line in record:
-      if line.startswith('x-wget-at-'):
-        key, value = line.split('-', 3)[-1].split(':', 1)
-        key = key.lower().strip().replace('-', '_')
-        value = value.strip()
-        if key not in metadata:
-          metadata[key] = []
-        metadata[key].append(value)
+  if 'warc-type: warcinfo' in record:
+    record = [s.strip() for s in record.splitlines()]
+    if record[1].lower() == 'warc-type: warcinfo':
+      for line in record:
+        if line.startswith('x-wget-at-'):
+          key, value = line.split('-', 3)[-1].split(':', 1)
+          key = key.lower().strip().replace('-', '_')
+          value = value.strip()
+          if key not in metadata:
+            metadata[key] = []
+          metadata[key].append(value)
   while True:
     if len(stream.read(4096)) == 0:
       break

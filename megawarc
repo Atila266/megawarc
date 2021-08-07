@@ -72,6 +72,7 @@ import sys
 import tarfile
 import tempfile
 import threading
+import time
 
 from optparse import OptionParser
 try:
@@ -392,14 +393,32 @@ class MegawarcBuilder(object):
 
 
 def init_zst_megawarc(out, project, dict_id, dict_server):
-  r = requests.get(dict_server, params={"project": project, "id": dict_id},
-                   timeout=5)
-  r.raise_for_status()
-  r = r.json()
+  while True:
+    try:
+      r = requests.get(dict_server, params={"project": project, "id": dict_id},
+                       timeout=5)
+      r.raise_for_status()
+      r = r.json()
+    except KeyboardInterrupt:
+      raise
+    except Exception as e:
+      print >>sys.stderr, "Failed to contact API, got %s" % str(e)
+      time.sleep(1)
+      continue
+    break
   if r["id"] != dict_id:
     raise ValueError("Received wrong dictionary ID.")
-  r_dict = requests.get(r["url"], timeout=5)
-  r_dict.raise_for_status()
+  while True:
+    try:
+      r_dict = requests.get(r["url"], timeout=5)
+      r_dict.raise_for_status()
+    except KeyboardInterrupt:
+      raise
+    except Exception as e:
+      print >>sys.stderr, "Failed to download dictionary, got %s" % str(e)
+      time.sleep(1)
+      continue
+    break
   data = r_dict.content
   if hashlib.sha256(data).hexdigest() != r["sha256"]:
     raise ValueError("Hash of dictionary does not match.")

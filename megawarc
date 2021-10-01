@@ -213,7 +213,10 @@ def read_metadata(stream, metadata):
   split_s = "\n" + "\r\n" * 2
   record = ""
   while True:
-    record += stream.read(4096)
+    read = stream.read(4096)
+    if len(read) == 0:
+        break
+    record += read
     if split_s in record:
       record = record.split(split_s)[0]
       break
